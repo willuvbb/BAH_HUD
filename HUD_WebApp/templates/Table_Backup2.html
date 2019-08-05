@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tabulator Test</title>
+    <link href="/static/tabulator_modern.css" rel="stylesheet">
+</head>
+<body>
+
+    		<nav class="colorlib-nav" role="navigation">
+			<div class="top-menu">
+				<div class="container">
+					<div class="row">
+						<div class="col-md-2">
+							<div id="colorlib-logo"><a href="index.html">Unapp</a></div>
+						</div>
+						<div class="col-md-10 text-right menu-1">
+							<ul>
+								<li><a href="index.html">Home</a></li>
+								<li class="has-dropdown">
+									<a href="work.html">Works</a>
+									<ul class="dropdown">
+										<li><a href="work-grid.html">Works grid with text</a></li>
+										<li><a href="work-grid-without-text.html">Works grid w/o text</a></li>
+									</ul>
+								</li>
+								<li class="active"><a href="services.html">Services</a></li>
+								<li><a href="blog.html">Blog</a></li>
+								<li><a href="about.html">About</a></li>
+								<li><a href="shop.html">Shop</a></li>
+								<li><a href="contact.html">Contact</a></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</nav>
+    <div id="example-table"></div>
+            <script type="text/javascript" src="/static/tabulator.min.js"></script>
+    <script type="text/javascript">
+	// the data will be fed into the html "as context" via flask app
+
+	var table = new Tabulator("#example-table", {
+		height:600, // set height of table to enable virtual DOM
+        data:{{ tabledata|tojson }},
+		layout:"fitColumns", //fit columns to width of table (optional)
+		columns:[ //Define Table Columns
+			{title:"Tweet", field:"tweet_text", sorter:"string", formatter:"textarea", widthGrow:5},
+			{title:"User", field:"username", sorter:"string", align:"left"},
+            {title:"Location", field:"location", sorter:"string", align:"left"},
+			{title:"Content", field:"primary", sorter:"string", width:100},
+            {title:"Emotion", field:"secondary", sorter:"string", width:120},
+            {title:"Followers", field:"followers_count", align:"center", width:150},
+			{title:"Timestamp", field:"timestamp", align:"center", width:150},
+		],
+        {#autoColumns:true,#}
+	    rowClick:function(e, id, data, row){ //trigger an alert message when the row is clicked
+	    	alert("Row " + id + " Clicked!!!!");
+	    },
+	});
+    </script>
+</body>
+</html>
+

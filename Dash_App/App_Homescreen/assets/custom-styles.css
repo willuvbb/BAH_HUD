@@ -1,0 +1,11 @@
+/*@media only screen and (max-width: 600px) {*/
+.mobileTab {
+    width: 33%;
+}
+
+/*}*/
+
+
+.tab {
+    width: calc(100% / 3);
+}

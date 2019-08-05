@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+            integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+            integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+            crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+            integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+            crossorigin="anonymous"></script>
+    <link href="/static/tabulator_bootstrap4.css" rel="stylesheet">
+    {#    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>#}
+    <script src="/static/plotly-latest.min.js"></script>
+    <script src="/static/lodash.js"></script>
+    {#    <script src="/static/Dashboard.js"></script>#}
+
+    {#    Main area for javascript.#}
+    <script type="text/javascript">
+        var myTweets = {{ tweets|tojson }};
+
+        console.log(myTweets);
+
+        var contentArray = _.map(myTweets, 'content');
+        console.log(contentArray);
+
+        var contentCount = _.countBy(contentArray);
+        console.log(contentCount);
+
+
+        var tweetContentPieData = [{
+            {#values: Object.values(contentCount),#}
+            {#labels: Object.keys(contentCount),#}
+            labels: contentArray,
+            type: 'pie',
+            textinfo: 'label',
+            hole: .3
+        }];
+
+        var tweetContentPieLayout = {
+            title: 'Tweet Content',
+            {#height: 400,#}
+            {#width: 600,#}
+        };
+
+        // Define the (static) emotion pie chart
+        var emotionArray = _.map(myTweets, 'emotion');
+        console.log(emotionArray);
+
+        var tweetEmotionPieData = [{
+            {#values: Object.values(contentCount),#}
+            {#labels: Object.keys(contentCount),#}
+            labels: emotionArray,
+            type: 'pie',
+            textinfo: 'label',
+            hole: .3
+        }];
+
+        var tweetEmotionPieLayout = {
+            title: 'Tweet Emotion',
+            {#height: 400,#}
+            {#width: 600,#}
+        };
+
+        {#window.updatePieCharts = void function(contentLabel, emotionLabel){#}
+
+        function updatePieCharts(contentLabel, emotionLabel) {
+            console.log('contentLabel: ', contentLabel);
+            console.log('emotionLabel: ', emotionLabel);
+            // Get access to current hiddenlabels
+            console.log('BEFORE UPDATING:');
+            console.log('hidden content labels via the tweetContentPieLayout variable');
+            var hiddenContentLabels = Object.assign([], tweetContentPieLayout['hiddenlabels']);
+            console.log('hiddenContentLabels');
+            console.log(hiddenContentLabels);
+
+
+            console.log('hidden emotion labels via the tweetContentPieLayout variable');
+            var hiddenEmotionLabels = Object.assign([], tweetEmotionPieLayout['hiddenlabels']);
+            console.log('hiddenEmotionLabels');
+            console.log(hiddenEmotionLabels);
+
+            if (hiddenContentLabels === undefined) {
+                hiddenContentLabels = [];
+            }
+            if (hiddenEmotionLabels === undefined) {
+                hiddenEmotionLabels = [];
+            }
+
+            if (hiddenContentLabels === {}) {
+                hiddenContentLabels = [];
+            }
+            if (hiddenEmotionLabels === {}) {
+                hiddenEmotionLabels = [];
+            }
+
+            if (contentLabel) {
+                if (hiddenContentLabels.includes(contentLabel)) {
+                    _.pull(hiddenContentLabels, contentLabel);
+                } else {
+                    hiddenContentLabels = _.concat(hiddenContentLabels, contentLabel);
+                }
+            }
+
+            if (emotionLabel) {
+                if (hiddenEmotionLabels.includes(emotionLabel)) {
+                    _.pull(hiddenEmotionLabels, emotionLabel);
+                } else {
+                    hiddenEmotionLabels = _.concat(hiddenEmotionLabels, emotionLabel);
+                }
+            }
+
+            console.log('AFTER UPDATING:')
+            console.log('hiddenContentLabels');
+            console.log(hiddenContentLabels);
+
+            console.log('hiddenEmotionLabels');
+            console.log(hiddenEmotionLabels);
+
+            window.$hiddenContentLabels = hiddenContentLabels;
+            window.$hiddenEmotionLabels = hiddenEmotionLabels;
+
+            // get the tweet data
+            var tweets_filtered = {{ tweets|tojson }};
+
+            console.log('Before Filtering:');
+            console.log('tweets_filtered', tweets_filtered);
+
+            // filter out the data we don't want from the tweets
+            _.forEach(hiddenContentLabels, function (iContent) {
+                tweets_filtered = _.reject(tweets_filtered, {'content': iContent});
+                ;
+            });
+            console.log('After Filtering Content:');
+            console.log('tweets_filtered', tweets_filtered);
+
+            _.forEach(hiddenEmotionLabels, function (iEmotion) {
+                tweets_filtered = _.reject(tweets_filtered, {'emotion': iEmotion});
+                ;
+            });
+            console.log('After Filtering Emotion:');
+            console.log('tweets_filtered', tweets_filtered);
+
+            var filteredContentArray = _.map(tweets_filtered, 'content');
+            console.log('filteredContentArray', filteredContentArray);
+            {##}
+            {#var filteredContentCount = _.countBy(filteredContentArray);#}
+            {#console.log(filteredContentCount);#}
+            {##}
+            {##}
+            {#// create the data and layout for the updated content pie chart#}
+            {#var newValues = Object.values(filteredContentCount);#}
+            {#var newLabels = Object.keys(filteredContentCount);#}
+            {##}
+            {#// filter out the data we don't want from the tweets#}
+            {#_.forEach(hiddenContentLabels, function (iContent) {#}
+            {#    newLabels = _.concat(newLabels, iContent);#}
+            {#    newValues = _.concat(newValues, 0);#}
+            //{#});#}
+
+
+            var filteredTweetContentPieData = [{
+                {#values: newValues,#}
+                {#labels: newLabels,#}
+                labels: filteredContentArray,
+                type: 'pie',
+                textinfo: 'label',
+                hole: .3
+            }];
+
+
+            var filteredTweetContentPieLayout = [{
+                title: 'Tweet Content',
+                {#hiddenlabels: hiddenContentLabels#}
+            }];
+
+
+            var filteredEmotionArray = _.map(tweets_filtered, 'emotion');
+            console.log('filteredEmotionArray', filteredEmotionArray);
+
+
+            // update the Content Pie chart
+            {#Plotly.update('tweetContentPie', filteredTweetContentPieData, {});#}
+            {#Plotly.update(myTweetContentPlot, filteredTweetContentPieData, {});#}
+            {#myTweetContentPlot.data = filteredTweetContentPieData;#}
+            // clear the div
+            {#Plotly.purge('tweetContentPie');#}
+            //put this one back in (below)
+            {#Plotly.newPlot(myTweetContentPlot, filteredTweetContentPieData, filteredTweetContentPieLayout);#}
+            {#Plotly.react(myTweetContentPlot, filteredTweetContentPieData);#}
+
+        }
+
+
+    </script>
+</head>
+<body>
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home"
+           aria-selected="true">Home</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="datatable-tab" data-toggle="tab" href="#datatable" role="tab" aria-controls="datatable"
+           aria-selected="false">Datatable</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="charts-tab" data-toggle="tab" href="#charts" role="tab" aria-controls="charts"
+           aria-selected="false">Charts</a>
+    </li>
+</ul>
+<div class="tab-content" id="myTabContent">
+    <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+        JIM
+    </div>
+    <div class="tab-pane fade" id="datatable" role="tabpanel" aria-labelledby="datatable-tab">
+
+        <div id="example-table"></div>
+        <script type="text/javascript" src="/static/tabulator.min.js"></script>
+        <script type="text/javascript">
+            // the data will be fed into the html "as context" via flask app
+            var datatable = new Tabulator("#example-table", {
+                height: 600, // set height of table to enable virtual DOM
+                data: myTweets,
+                layout: "fitColumns", //fit columns to width of table (optional)
+                columns: [ //Define Table Columns
+                    {title: "Timestamp", field: "timestamp", align: "center", width: 150},
+                    {title: "Tweet", field: "tweet", sorter: "string", formatter: "textarea", widthGrow: 5},
+                    {title: "Content", field: "content", sorter: "string", width: 100},
+                    {title: "Emotion", field: "emotion", sorter: "string", width: 120},
+                    {title: "User", field: "username", sorter: "string", align: "left"},
+                    {title: "Followers", field: "followers", align: "center", width: 150},
+                    {title: "Location", field: "location", sorter: "string", align: "left"},
+                    {title: "State", field: "state", sorter: "string", align: "left"},
+                ],
+                rowClick: function (e, id, data, row) { //trigger an alert message when the row is clicked
+                    alert("Row " + id + " Clicked!!!!");
+                },
+            });
+        </script>
+    </div>
+    <div class="tab-pane fade" id="charts" role="tabpanel" aria-labelledby="charts-tab">
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <div id="tweetContentPie"></div>
+                    <script type="text/javascript">
+                        Plotly.newPlot('tweetContentPie', tweetContentPieData, tweetContentPieLayout);
+                        var myTweetContentPlot = document.getElementById('tweetContentPie')
+                        myTweetContentPlot.on('plotly_legendclick', function (data) {
+                            console.log('data', data);
+                            console.log('data.label', data.label);
+
+                            {#updatePieCharts(data.label, []);#}
+
+
+                            return false;
+                        });
+
+
+                    </script>
+                </div>
+                <div class="col">
+                    <div id="tweetEmotionPie"></div>
+                    <script type="text/javascript">
+                        Plotly.newPlot('tweetEmotionPie', tweetEmotionPieData, tweetEmotionPieLayout);
+                        var myTweetEmotionPlot = document.getElementById('tweetEmotionPie');
+
+                        myTweetEmotionPlot.on('plotly_legendclick', function (data) {
+                            {#console.log(data);#}
+                            {#                            console.log(window.$log = data);#}
+
+                            {#updatePieCharts([], data.label);#}
+
+                            return true;
+                        });
+
+                        {#console.log('testing the $log');#}
+                        {#console.log($log);#}
+
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+{#                            // update the#}
+{#Plotly.update(graphDiv, data_update, layout_update, [, traceIndices]);#}
+{#graphDiv#}
+{#DOM node or string id of a DOM node#}
+{#data_update#}
+{#object, see Plotly.restyle above #}
+{#(defaults to {})#}
+{#layout_update#}
+{#object, see Plotly.relayout above #}
+{#(defaults to {})#}
+
+
+{#myFunc();#}
+{#                            console.log('data:');#}
+{#                            console.log(data);#}
+{#                            console.log(data['layout']);#}
+{#                            console.log('     ..     ');#}
+{#                            console.log(data.layout);#}
+{#                            console.log(data.layout.hiddenlabels);#}
+{#                            console.log(data['']);#}
+{#                            console.log(data);#}
+{#                            console.log(window.$log = data);#}
+{##}
+{#                            console.log('$log');#}
+{#                            console.log($log);#}
+{#                            console.log('$log.layout.hiddenlabels');#}
+{#                            console.log($log.layout.hiddenlabels);#}
+{##}
+{##}
+{#                            // make a list of the hidden labels#}
+{#                            console.log('hidden content labels, just outputting the "data" of the legend click');#}
+{#                            console.log(data['layout']['hiddenlabels']);#}
+{##}
+{#                            console.log('hidden content labels, making a variable of the "data" of the legend click');#}
+{#                            var hiddenContentLabels = data['layout']['hiddenlabels'];#}
+{#                            console.log(hiddenContentLabels);#}
+{##}

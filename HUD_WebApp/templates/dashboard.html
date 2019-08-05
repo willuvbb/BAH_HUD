@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    {#    <link rel="shortcut icon" href="./../files/favicon.ico">#}
+    {#    <link rel="icon" href="./../files/favicon-32x32.png" type="image/png"/>#}
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+            integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+            integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+            crossorigin="anonymous"></script>
+    {#    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"#}
+    {#          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">#}
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+            integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+            crossorigin="anonymous"></script>
+    <link href="/static/tabulator_bootstrap4.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    {#    <script src="/static/plotly-latest.min.js"></script>#}
+    <script src="../static/lodash.js"></script>
+    {#    <script src="../static/plotly-geo-latest.js"></script>#}
+    {#    <script src="../static/plotly-basic-latest.js"></script>#}
+
+    <link href="./../static/bootstrap.css" rel="stylesheet">
+    {#    <script src="../static/bootstrap.js"></script>#}
+
+    {#    <script src="/static/plotly.js-1.49.1"></script>#}
+    {#    <script type="text/javascript">import Plotly from 'static/plotly.js-1.49.1';</script>#}
+    {#    <script src="/static/Dashboard.js"></script>#}
+
+    {#    Main area for javascript.#}
+    <script type="text/javascript">
+        var myTweets = {{ tweets|tojson }};
+
+        console.log(myTweets);
+
+        var contentArray = _.map(myTweets, 'content');
+        console.log(contentArray);
+
+        //var contentCount = _.countBy(contentArray);
+        //console.log(contentCount);
+
+
+        var tweetContentPieData = [{
+            {#values: Object.values(contentCount),#}
+            {#labels: Object.keys(contentCount),#}
+            labels: contentArray,
+            type: 'pie',
+            textinfo: 'label',
+            hole: .3
+        }];
+
+        var tweetContentPieLayout = {
+            title: 'Tweet Content',
+            {#autosize: 'true'#}
+            height: 450,
+            width: 550,
+        };
+
+        // Define the (static) emotion pie chart
+        var emotionArray = _.map(myTweets, 'emotion');
+        //console.log(emotionArray);
+
+        var tweetEmotionPieData = [{
+            {#values: Object.values(contentCount),#}
+            {#labels: Object.keys(contentCount),#}
+            labels: emotionArray,
+            type: 'pie',
+            textinfo: 'label',
+            hole: .3
+        }];
+
+        var tweetEmotionPieLayout = {
+            title: 'Tweet Emotion',
+            {#autosize: 'true'#}
+            height: 450,
+            width: 550,
+        };
+
+        var contentIDs = ['commentCheck', 'newsCheck', 'policyDecisionCheck', 'questionCheck',
+            'irrelevantCheck', 'maintenanceCheck', 'experienceCheck'];
+        var emotionIDs = ['frustratedCheck', 'neutralCheck', 'positiveCheck', 'confusedCheck'];
+
+        var hiddenContentLabels = [];
+        var hiddenEmotionLabels = [];
+
+        function filterTweets() {
+            // get the tweet data
+            var tweets_filtered = {{ tweets|tojson }};
+
+            console.log('Before Filtering:');
+            console.log('tweets_filtered', tweets_filtered);
+
+            // filter out the data we don't want from the tweets
+            _.forEach(window.hiddenContentLabels, function (iContent) {
+                tweets_filtered = _.reject(tweets_filtered, {'content': iContent});
+                ;
+            });
+            console.log('After Filtering Content:');
+            console.log('tweets_filtered', tweets_filtered);
+
+            _.forEach(window.hiddenEmotionLabels, function (iEmotion) {
+                tweets_filtered = _.reject(tweets_filtered, {'emotion': iEmotion});
+                ;
+            });
+            console.log('After Filtering Emotion:');
+            console.log('tweets_filtered', tweets_filtered);
+
+            // Update the data of the plots
+            window.myTweetContentPlot.data[0].labels = _.map(tweets_filtered, 'content');
+            window.myTweetEmotionPlot.data[0].labels = _.map(tweets_filtered, 'emotion');
+
+            // Replot them
+            plotContent();
+            plotEmotion();
+
+        }
+
+
+        function plotEmotion() {
+            console.log('plotEmotion() called');
+            Plotly.newPlot('tweetEmotionPie', window.tweetEmotionPieData, window.tweetEmotionPieLayout);
+        }
+
+        function plotContent() {
+            console.log('plotContent() called');
+            console.log('tweetContentPieData', window.tweetContentPieData);
+            console.log('tweetContentPieLayout', window.tweetContentPieLayout);
+            Plotly.newPlot('tweetContentPie', window.tweetContentPieData, window.tweetContentPieLayout);
+        }
+
+    </script>
+</head>
+<body>
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home"
+           aria-selected="true">Home</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="map-tab" data-toggle="tab" href="#map" role="tab" aria-controls="map"
+           aria-selected="false">Map</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="datatable-tab" data-toggle="tab" href="#datatable" role="tab" aria-controls="datatable"
+           aria-selected="false">Datatable</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="charts-tab" data-toggle="tab" href="#charts" role="tab" aria-controls="charts"
+           aria-selected="false">Charts</a>
+    </li>
+
+</ul>
+<div class="tab-content" id="myTabContent">
+    <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col" align="center">
+                    <script type="text/javascript">
+                        function enterDashboardFunc() {
+                            console.log('enter dashboard button pressed');
+                            $('[href="#map"]').tab('show');
+                        }
+                    </script>
+                    <button class="btn btn-primary" type="submit" onclick="enterDashboardFunc();">Enter Dashboard
+                    </button>
+                </div>
+            </div>
+            <div class="row top-buffer">
+                <div class="col" align="center">
+                    <img src="./../static/HUD_Seal.svg">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tab-pane fade" id="map" role="tabpanel" aria-labelledby="map-tab">
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <div id="stateChoroplethMap"></div>
+                    <script type="text/javascript">
+                        var myStates = {{ states|tojson }};
+
+                        console.log(myStates);
+
+                        var mapLocations = _.map(myStates, 'Abbreviation');
+                        console.log('mapLocations:', mapLocations);
+
+                        var mapCounts = _.map(myStates, 'count');
+                        console.log('mapCounts', mapCounts);
+
+                        var mapText = _.map(myStates, 'State');
+                        console.log('mapText', mapText);
+
+                        var contentCount = _.countBy(contentArray);
+                        console.log(contentCount);
+
+
+                        var myStateChoroplethMap = document.getElementById('stateChoroplethMap');
+
+                        var mapData = [{
+                            type: 'choropleth',
+                            locations: mapLocations,
+                            locationmode: 'USA-states',
+                            z: mapCounts,
+                            text: mapText,
+                            colorscale: [
+                                [0, 'rgb(5, 10, 172)'], [0.35, 'rgb(40, 60, 190)'],
+                                [0.5, 'rgb(70, 100, 245)'], [0.6, 'rgb(90, 120, 245)'],
+                                [0.7, 'rgb(106, 137, 247)'], [1, 'rgb(220, 220, 220)']],
+                            reversescale: true,
+                            colorbar: {
+                                title: 'Number of Tweets',
+                                thickness: 0.2
+                            },
+                            marker: {
+                                line: {
+                                    color: 'rgb(255,255,255)',
+                                    width: 1
+                                }
+                            }
+                        }];
+
+                        var mapLayout = {
+                            title: 'Tweets by State (Hover for info, Click State to Filter Table)',
+                            geo: {
+                                scope: 'usa',
+                                showlakes: true,
+                                lakecolor: 'rgb(255,255,255)',
+                                projection: {
+                                    type: 'albers usa'
+                                }
+                            },
+                            height: 700,
+                            width: 1000
+                        };
+
+                        Plotly.plot(myStateChoroplethMap, mapData, mapLayout, {showLink: false});
+
+                        myStateChoroplethMap.on('plotly_click', function (data) {
+                            console.log('data', data);
+                            console.log('data.points[0].location', data.points[0].location);
+                            $('[href="#datatable"]').tab('show');
+                            datatable.setHeaderFilterValue("state", data.points[0].location);
+                        });
+
+
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tab-pane fade" id="datatable" role="tabpanel" aria-labelledby="datatable-tab">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col">
+                    <script type="text/javascript">
+                        function clearFiltersFunc() {
+                            console.log('clear filters button pressed');
+                            datatable.clearFilter(true);
+                            datatable.setSort("timestamp", "asc");
+                        }
+                    </script>
+                    <button class="btn btn-primary" type="submit" onclick="clearFiltersFunc();">Clear Filters</button>
+                </div>
+                <div class="col">
+                    <script type="text/javascript">
+                        function showFiltersFunc() {
+                            console.log('show filters button pressed');
+                            console.log(datatable.getFilters(true));
+                        }
+                    </script>
+                    <button class="btn btn-primary" type="submit" onclick="showFiltersFunc();">Show Filters in Console
+                    </button>
+                </div>
+            </div>
+            <div class="row">
+                <div id="example-table"></div>
+                <script type="text/javascript" src="/static/tabulator.min.js"></script>
+                <script type="text/javascript">
+                    // the data will be fed into the html "as context" via flask app
+                    var datatable = new Tabulator("#example-table", {
+                        height: 600, // set height of table to enable virtual DOM
+                        data: myTweets,
+                        layout: "fitColumns", //fit columns to width of table (optional)
+                        columns: [ //Define Table Columns
+                            {
+                                title: "Timestamp",
+                                field: "timestamp",
+                                align: "center",
+                                formatter: "textarea",
+                                width: 125,
+                                headerFilter: true
+                            },
+                            {
+                                title: "Tweet",
+                                field: "tweet",
+                                sorter: "string",
+                                formatter: "textarea",
+                                widthGrow: 3,
+                                headerFilter: true
+                            },
+                            {
+                                title: "Content",
+                                field: "content",
+                                sorter: "string",
+                                formatter: "textarea",
+                                width: 105,
+                                headerFilter: true
+                            },
+                            {
+                                title: "Emotion",
+                                field: "emotion",
+                                sorter: "string",
+                                formatter: "textarea",
+                                width: 105,
+                                headerFilter: true
+                            },
+                            {
+                                title: "User",
+                                field: "username",
+                                sorter: "string",
+                                formatter: "textarea",
+                                align: "left",
+                                headerFilter: true
+                            },
+                            {
+                                title: "Followers",
+                                field: "followers",
+                                align: "right",
+                                width: 111,
+                                formatter: "textarea",
+                                headerFilter: true
+                            },
+                            {
+                                title: "Location",
+                                field: "location",
+                                sorter: "string",
+                                formatter: "textarea",
+                                align: "left",
+                                headerFilter: true
+                            },
+                            {
+                                title: "State",
+                                field: "state",
+                                sorter: "string",
+                                width: 85,
+                                formatter: "textarea",
+                                align: "left",
+                                headerFilter: true
+                            },
+                        ],
+                        initialSort: [
+                            {column: "timestamp", dir: "asc"}, //sort by this first
+                        ]
+                    });
+                </script>
+            </div>
+        </div>
+    </div>
+    <div class="tab-pane fade" id="charts" role="tabpanel" aria-labelledby="charts-tab">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col" align="left">
+                    <button class="btn btn-primary" type="submit" onclick="resetPlotFunc();">Reset Plots</button>
+                    <script type="text/javascript">
+                        function resetPlotFunc() {
+                            // set the hidden labels arrays to empty
+                            window.hiddenContentLabels = [];
+                            window.hiddenEmotionLabels = [];
+
+                            // set the checkboxes to "checked"
+                            window.contentIDs.forEach(function (arrayItem) {
+                                var tempCheckBox = document.getElementById(arrayItem);
+                                // console.log('tempCheckBox', tempCheckBox);
+                                tempCheckBox.checked = true;
+                            });
+
+                            window.emotionIDs.forEach(function (arrayItem) {
+                                var tempCheckBox = document.getElementById(arrayItem);
+                                // console.log('tempCheckBox', tempCheckBox);
+                                tempCheckBox.checked = true;
+                            });
+
+                            // call the filter tweets function (this will call plotContent() and plotEmotion())
+                            filterTweets();
+                        }
+                    </script>
+
+                    <button class="btn btn-primary" type="submit" onclick="dispFunc();">Display Information</button>
+                    <script type="text/javascript">
+                        function dispFunc() {
+                            console.log('display button pressed');
+                            console.log('tweetContentPieData', tweetContentPieData);
+                            console.log('tweetContentPieLayout', tweetContentPieLayout);
+
+                            console.log('hiddenContentLabels', hiddenContentLabels);
+                            console.log('hiddenEmotionLabels', hiddenEmotionLabels);
+                        }
+                    </script>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <div class="custom-control custom-checkbox custom-control-inline">
+                        <input type="checkbox" class="custom-control-input" id="commentCheck" checked>
+                        <label class="custom-control-label" for="commentCheck">
+                            Comment
+                        </label>
+                    </div>
+                    <div class="custom-control custom-checkbox custom-control-inline">
+                        <input type="checkbox" class="custom-control-input" id="newsCheck" checked>
+                        <label class="custom-control-label" for="newsCheck">
+                            News
+                        </label>
+                    </div>
+                    <div class="custom-control custom-checkbox custom-control-inline">
+                        <input type="checkbox" class="custom-control-input" id="policyDecisionCheck" checked>
+                        <label class="custom-control-label" for="policyDecisionCheck">
+                            Policy Decision
+                        </label>
+                    </div>
+                    <div class="custom-control custom-checkbox custom-control-inline">
+                        <input type="checkbox" class="custom-control-input" id="questionCheck" checked>
+                        <label class="custom-control-label" for="questionCheck">
+                            Question
+                        </label>
+                    </div>
+                    <div class="custom-control custom-checkbox custom-control-inline">
+                        <input type="checkbox" class="custom-control-input" id="irrelevantCheck" checked>
+                        <label class="custom-control-label" for="irrelevantCheck">
+                            Irrelevant
+                        </label>
+                    </div>
+                    <div class="custom-control custom-checkbox custom-control-inline">
+                        <input type="checkbox" class="custom-control-input" id="maintenanceCheck" checked>
+                        <label class="custom-control-label" for="maintenanceCheck">
+                            Maintenance
+                        </label>
+                    </div>
+                    <div class="custom-control custom-checkbox custom-control-inline">
+                        <input type="checkbox" class="custom-control-input" id="experienceCheck" checked>
+                        <label class="custom-control-label" for="experienceCheck">
+                            Experience
+                        </label>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="custom-control custom-checkbox custom-control-inline">
+                        <input type="checkbox" class="custom-control-input" id="frustratedCheck" checked>
+                        <label class="custom-control-label" for="frustratedCheck">
+                            Frustrated
+                        </label>
+                    </div>
+                    <div class="custom-control custom-checkbox custom-control-inline">
+                        <input type="checkbox" class="custom-control-input" id="neutralCheck" checked>
+                        <label class="custom-control-label" for="neutralCheck">
+                            Neutral
+                        </label>
+                    </div>
+                    <div class="custom-control custom-checkbox custom-control-inline">
+                        <input type="checkbox" class="custom-control-input" id="positiveCheck" checked>
+                        <label class="custom-control-label" for="positiveCheck">
+                            Positive
+                        </label>
+                    </div>
+                    <div class="custom-control custom-checkbox custom-control-inline">
+                        <input type="checkbox" class="custom-control-input" id="confusedCheck" checked>
+                        <label class="custom-control-label" for="confusedCheck">
+                            Confused
+                        </label>
+                    </div>
+                </div>
+
+                <script type="text/javascript">
+                    $('.custom-control-input').on('change', evt => {
+                        console.log('evt', evt);
+                        console.log('evt.target.id', evt.target.id);
+                        console.log('evt.target.parentElement.innerText', evt.target.parentElement.innerText);
+                        console.log($(evt.target).is(':checked'));
+
+                        if (_.includes(contentIDs, evt.target.id)) {
+                            if ($(evt.target).is(':checked')) {
+                                _.pull(window.hiddenContentLabels, evt.target.parentElement.innerText);
+                            } else {
+                                window.hiddenContentLabels = _.concat(window.hiddenContentLabels, evt.target.parentElement.innerText);
+                            }
+                        } else if (_.includes(emotionIDs, evt.target.id)) {
+                            if ($(evt.target).is(':checked')) {
+                                _.pull(window.hiddenEmotionLabels, evt.target.parentElement.innerText);
+                            } else {
+                                window.hiddenEmotionLabels = _.concat(window.hiddenEmotionLabels, evt.target.parentElement.innerText);
+                            }
+                        }
+
+                        console.log('hiddenContentLabels', window.hiddenContentLabels);
+                        console.log('hiddenEmotionLabels', window.hiddenEmotionLabels);
+
+                        filterTweets();
+                    })
+                </script>
+            </div>
+            <div class="row">
+                <div class="col-lg-6">
+                    <div id="tweetContentPie"></div>
+                    <script type="text/javascript">
+
+                        plotContent();
+
+                        var myTweetContentPlot = document.getElementById('tweetContentPie');
+                        myTweetContentPlot.on('plotly_legendclick', function (event) {
+                            return false;
+                        });
+
+                    </script>
+                </div>
+                <div class="col-lg-6">
+                    <div id="tweetEmotionPie"></div>
+                    <script type="text/javascript">
+
+                        plotEmotion();
+                        var myTweetEmotionPlot = document.getElementById('tweetEmotionPie');
+
+                        myTweetEmotionPlot.on('plotly_legendclick', function (data) {
+                            return false;
+                        });
+
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
+{#var filteredContentArray = _.map(tweets_filtered, 'content');#}
+{#console.log('filteredContentArray', filteredContentArray);#}
+{##}
+{#var filteredContentCount = _.countBy(filteredContentArray);#}
+{#console.log(filteredContentCount);#}
+{##}
+{##}
+{#// create the data and layout for the updated content pie chart#}
+{#var newValues = Object.values(filteredContentCount);#}
+{#var newLabels = Object.keys(filteredContentCount);#}
+{##}
+{#// filter out the data we don't want from the tweets#}
+{#_.forEach(hiddenContentLabels, function (iContent) {#}
+{#    newLabels = _.concat(newLabels, iContent);#}
+{#    newValues = _.concat(newValues, 0);#}
+
+
+{#                            // update the#}
+{#Plotly.update(graphDiv, data_update, layout_update, [, traceIndices]);#}
+{#graphDiv#}
+{#DOM node or string id of a DOM node#}
+{#data_update#}
+{#object, see Plotly.restyle above #}
+{#(defaults to {})#}
+{#layout_update#}
+{#object, see Plotly.relayout above #}
+{#(defaults to {})#}
+
+
+{#resetPlotFunc();#}
+{#                            console.log('data:');#}
+{#                            console.log(data);#}
+{#                            console.log(data['layout']);#}
+{#                            console.log('     ..     ');#}
+{#                            console.log(data.layout);#}
+{#                            console.log(data.layout.hiddenlabels);#}
+{#                            console.log(data['']);#}
+{#                            console.log(data);#}
+{#                            console.log(window.$log = data);#}
+{##}
+{#                            console.log('$log');#}
+{#                            console.log($log);#}
+{#                            console.log('$log.layout.hiddenlabels');#}
+{#                            console.log($log.layout.hiddenlabels);#}
+{##}
+{##}
+{#                            // make a list of the hidden labels#}
+{#                            console.log('hidden content labels, just outputting the "data" of the legend click');#}
+{#                            console.log(data['layout']['hiddenlabels']);#}
+{##}
+{#                            console.log('hidden content labels, making a variable of the "data" of the legend click');#}
+{#                            var hiddenContentLabels = data['layout']['hiddenlabels'];#}
+{#                            console.log(hiddenContentLabels);#}
+{##}
+{#        #}
+{##}
+{##}
+{#var filteredTweetContentPieData = [{#}
+{#values: newValues,#}
+{#labels: newLabels,#}
+{#    labels: filteredContentArray,#}
+{#    type: 'pie',#}
+{#    textinfo: 'label',#}
+{#    hole: .3#}
+{#        }]#}
+{#            ;#}
+{#            #}
+{##}
+{##}
+{#var filteredTweetContentPieLayout = [{#}
+{#    title: 'Tweet Content',#}
+{#hiddenlabels: hiddenContentLabels#}
+{#            }]#}
+{#                ;#}
+{#                #}
+{##}
+{##}
+{#var filteredEmotionArray = _.map(tweets_filtered, 'emotion');#}
+{#console.log('filteredEmotionArray', filteredEmotionArray);#}
+
+
+{#                // update the Content Pie chart#}
+{#Plotly.update('tweetContentPie', filteredTweetContentPieData, {});#}
+{#Plotly.update(myTweetContentPlot, filteredTweetContentPieData, {});#}
+{#myTweetContentPlot.data = filteredTweetContentPieData;#}
+
+{#                // clear the div#}
+{#Plotly.purge('tweetContentPie');#}
+
+{#                //put this one back in (below)#}
+{#Plotly.react('tweetContentPie', filteredTweetContentPieData, filteredTweetContentPieLayout);#}
+{#Plotly.react(myTweetContentPlot, filteredTweetContentPieData);#}
+
+{#            }#}
+{##}
+{#                <div class="col">#}
+{#                    <div id="testChoroplethMap"></div>#}
+{#                    <script type="text/javascript">#}
+{#                        console.log('hey i made it to the place where the map should go')#}
+{#                        var myTestChoroplethMap = document.getElementById('testChoroplethMap');#}
+{#                        Plotly.d3.csv('https://raw.githubusercontent.com/plotly/datasets/master/2011_us_ag_exports.csv', function (err, rows) {#}
+{#                            function unpack(rows, key) {#}
+{#                                return rows.map(function (row) {#}
+{#                                    return row[key];#}
+{#                                });#}
+{#                            }#}
+{##}
+{#                            console.log('locations: unpack(rows, \'code\')', unpack(rows, 'code'));#}
+{#                            console.log('z: unpack(rows, \'total exports\')', unpack(rows, 'total exports'));#}
+{#                            console.log('text: unpack(rows, \'state\')', unpack(rows, 'state'));#}
+{##}
+{#                            var testData = [{#}
+{#                                type: 'choropleth',#}
+{#                                locationmode: 'USA-states',#}
+{#                                locations: unpack(rows, 'code'),#}
+{#                                z: unpack(rows, 'total exports'),#}
+{#                                text: unpack(rows, 'state'),#}
+{#                                zmin: 0,#}
+{#                                zmax: 17000,#}
+{#                                colorscale: [#}
+{#                                    [0, 'rgb(242,240,247)'], [0.2, 'rgb(218,218,235)'],#}
+{#                                    [0.4, 'rgb(188,189,220)'], [0.6, 'rgb(158,154,200)'],#}
+{#                                    [0.8, 'rgb(117,107,177)'], [1, 'rgb(84,39,143)']#}
+{#                                ],#}
+{#                                colorbar: {#}
+{#                                    title: 'Millions USD',#}
+{#                                    thickness: 0.2#}
+{#                                },#}
+{#                                marker: {#}
+{#                                    line: {#}
+{#                                        color: 'rgb(255,255,255)',#}
+{#                                        width: 2#}
+{#                                    }#}
+{#                                }#}
+{#                            }];#}
+{##}
+{##}
+{#                            var testLayout = {#}
+{#                                title: '2011 US Agriculture Exports by State',#}
+{#                                geo: {#}
+{#                                    scope: 'usa',#}
+{#                                    showlakes: true,#}
+{#                                    lakecolor: 'rgb(255,255,255)'#}
+{#                                }#}
+{#                            };#}
+{##}
+{#                            Plotly.plot(myTestChoroplethMap, testData, testLayout, {showLink: false});#}
+{#                        });#}
+{#                    </script>#}
+{#                </div>#}

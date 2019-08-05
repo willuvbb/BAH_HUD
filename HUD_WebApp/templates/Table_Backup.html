@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tabulator Test</title>
+    <link href="/static/tabulator.min.css" rel="stylesheet">
+</head>
+<body>
+    <div id="example-table"></div>
+            <script type="text/javascript" src="/static/tabulator.min.js"></script>
+    <script type="text/javascript">
+	// the data will be fed into the html "as context"
+    var table_data_within_html_js;
+    table_data_within_html_js = {{ tabledata }};
+
+    var table_data_hardcode = [
+        {'tweet_text': 'b"@aoc seems that\'s a nyc problem and not a federal government problem. public housing shouldn\'t exist anyways but if you make them dependant on you then they will keep voting you into an overpaid job."', 'Primary': 'C'},
+        {'tweet_text': "b'@lukehowarthmp i would prefer services for all reather than tax cuts for some. you could have postponed the tax cuts and funded public housing- which saves $$$ by reduced expenditure on legal &amp; health services https://t.co/2snhw98erh'", 'Primary': 'PD'},
+        {'tweet_text': 'b"@iamjohnburnett @aoc is there a reason we can\'t properly fund public housing and shut down the concentration camps at the border? i see no problem in doing both."', 'Primary': 'Q'},
+        {'tweet_text': 'b"@nickydommy @byjoshuadavis @yimbyaction it is a problem as simple as supply and demand. restrict supply and demand goes through the roof.  public housing is the dehumanizing and demoralizing option of last resort, not a solution for the middle class. when the middle class can\'t afford to live, something else is wrong."', 'Primary': 'C'}
+        ];
+
+    {#console.log(typeof table_data_within_html_js)#}
+    {#console.log(typeof table_data_hardcode)#}
+
+	var table = new Tabulator("#example-table", {
+		height:200, // set height of table to enable virtual DOM
+		data:table_data_hardcode, //load initial data into table
+        {#data:table_data_within_html_js,#}
+		layout:"fitColumns", //fit columns to width of table (optional)
+		{#columns:[ //Define Table Columns#}
+		{#	{title:"Name", field:"name", sorter:"string", width:150},#}
+		{#	{title:"Age", field:"age", sorter:"number", align:"left", formatter:"progress"},#}
+		{#	{title:"Favourite Color", field:"col", sorter:"string", sortable:false},#}
+		{#	{title:"Date Of Birth", field:"dob", sorter:"date", align:"center"},#}
+		{#],#}
+        layout:"fitColumns",
+            autoColumns:true,
+	    rowClick:function(e, id, data, row){ //trigger an alert message when the row is clicked
+	    	alert("Row " + id + " Clicked!!!!");
+	    },
+	});
+    </script>
+</body>
+</html>
+

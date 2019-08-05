@@ -1,0 +1,43 @@
+app:
+  pickle_path: pickled_tweets.pkl
+  search_terms_path: search_terms/additional_search_terms.yml
+  search_terms_folder: search_terms
+  remove_locations_path: remove_locations.yml
+  dataframe_pickle_path: pickled_df.pkl
+  zip_fip_path: zip_to_fip.csv
+  tweet_mode: extended
+  csv_path: tweet_output_HUD.csv
+#  json_path: Bongo_HUD_Tweets3.json
+  json_path: Bongo_FIFA_Tweets.json
+  state_lookup_path: state_lookup.csv
+  dataframes_folder: dataframes
+  master_dataframe_path: tweet_locations.csv
+  waiting_time: 905
+  call_limit: 15
+  time_between_calls: 5
+  num_calls: 1
+  obey_rate_limit: True
+  max_tweets: 1000
+  regular_ingest: True
+  retweets: True
+  get_plot: False
+  get_df_pickle: False
+api_rate_limits:
+  twitter_api_rate_limit: 15000
+  uszip_api_rate_limit: 1000
+  geonames_api_rate_limit: 1000
+geolocator:
+  app_name: app-3
+  timeout: 3600
+  locations_to_coordinates: False
+  coordinates_to_zip_fip: False
+twitter_dev_credentials:
+  consumer_key: 'G91QOiv5k65dURn4f38HYmi9i'
+  consumer_secret: 'xhboh64wsUyHq1OfwgVc6EWpWJKGc3Ob9XSn7gK63J6fxPXtgg'
+  access_token: '1139543220004773889-QTxZITy6Q06Z1R9ElqEafSh6mjMp8q'
+  access_token_secret: 'dSCaONBH8x00N1ftMUAW9xgmjd466t9TMMs213nxQGoTZ'
+location:
+  latitude: 38.507481
+  longitude: -122.398720
+  radius: 1558.28mi
+    
