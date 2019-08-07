@@ -77,16 +77,6 @@ def make_custom_stopwords():
     custom_stopwords.remove('!')
     return custom_stopwords
 
-# class Category(object):
-#     def __init__(self, cat_name):
-#         self.name = cat_name
-#
-#         if self.name is 'Primary':
-#             self.column_id_name = primary_id_columnName
-#             self.id_df = primary_category_id_df
-#         elif self.name is 'Secondary':
-#             self.column_id_name = secondary_id_columnName
-#             self.id_df = secondary_category_id_df
 
 class Classifier(object):
     def __init__(self, cat_name,use_last_import=False):

@@ -603,7 +603,22 @@ pre code {
   margin-left: -15px;
 }
 
+.mycontent-left {
+  border-right: 1px solid #333;
+}
+
+.vl {
+  border-left: 6px solid green;
+  height: 500px;
+  position: absolute;
+  left: 50%;
+  margin-left: -3px;
+  top: 0;
+}
+
 .top-buffer { margin-top:20px; }
+.bottom-buffer { margin-bottom:20px; }
+
 
 .no-gutters {
   margin-right: 0;
