@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+            integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+            integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+            crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+            integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+            crossorigin="anonymous"></script>
+    <link href="/static/tabulator_bootstrap4.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="../static/lodash.js"></script>
+    <link href="./../static/bootstrap.css" rel="stylesheet">
+
+    <script type="text/javascript">
+        var myTweets = {{ tweets|tojson }};
+
+        console.log(myTweets);
+
+        var contentArray = _.map(myTweets, 'content');
+        console.log(contentArray);
+
+        //var contentCount = _.countBy(contentArray);
+        //console.log(contentCount);
+
+
+        var tweetContentPieData = [{
+            {#values: Object.values(contentCount),#}
+            {#labels: Object.keys(contentCount),#}
+            labels: contentArray,
+            type: 'pie',
+            textinfo: 'label',
+            hole: .3
+        }];
+
+        var tweetContentPieLayout = {
+            height: 450,
+            width: 550,
+        };
+
+        // Define the (static) emotion pie chart
+        var emotionArray = _.map(myTweets, 'emotion');
+        //console.log(emotionArray);
+
+        var tweetEmotionPieData = [{
+            {#values: Object.values(contentCount),#}
+            {#labels: Object.keys(contentCount),#}
+            labels: emotionArray,
+            type: 'pie',
+            textinfo: 'label',
+            hole: .3,
+            marker: {
+                colors: ['rgb(228,26,28)','rgb(55,126,184)','rgb(77,175,74)','rgb(152,78,163)']
+            }
+        }];
+
+        var tweetEmotionPieLayout = {
+            height: 450,
+            width: 550,
+        };
+
+        var contentIDs = ['commentCheck', 'newsCheck', 'policyDecisionCheck', 'questionCheck',
+            'irrelevantCheck', 'maintenanceCheck', 'experienceCheck'];
+        var emotionIDs = ['frustratedCheck', 'neutralCheck', 'positiveCheck', 'confusedCheck'];
+
+        var hiddenContentLabels = [];
+        var hiddenEmotionLabels = [];
+
+        function filterTweets() {
+            // get the tweet data
+            var tweets_filtered = {{ tweets|tojson }};
+
+            console.log('Before Filtering:');
+            console.log('tweets_filtered', tweets_filtered);
+
+            // filter out the data we don't want from the tweets
+            _.forEach(window.hiddenContentLabels, function (iContent) {
+                tweets_filtered = _.reject(tweets_filtered, {'content': iContent});
+                ;
+            });
+            console.log('After Filtering Content:');
+            console.log('tweets_filtered', tweets_filtered);
+
+            _.forEach(window.hiddenEmotionLabels, function (iEmotion) {
+                tweets_filtered = _.reject(tweets_filtered, {'emotion': iEmotion});
+                ;
+            });
+            console.log('After Filtering Emotion:');
+            console.log('tweets_filtered', tweets_filtered);
+
+            // Update the data of the plots
+            window.myTweetContentPlot.data[0].labels = _.map(tweets_filtered, 'content');
+            window.myTweetEmotionPlot.data[0].labels = _.map(tweets_filtered, 'emotion');
+
+            // Replot them
+            plotContent();
+            plotEmotion();
+
+        }
+
+
+        function plotEmotion() {
+            console.log('plotEmotion() called');
+            Plotly.newPlot('tweetEmotionPie', window.tweetEmotionPieData, window.tweetEmotionPieLayout);
+        }
+
+        function plotContent() {
+            console.log('plotContent() called');
+            console.log('tweetContentPieData', window.tweetContentPieData);
+            console.log('tweetContentPieLayout', window.tweetContentPieLayout);
+            Plotly.newPlot('tweetContentPie', window.tweetContentPieData, window.tweetContentPieLayout);
+        }
+
+        var showModalJSON = {Home: false, Map: true, Datatable: true, Charts: true};
+
+
+        // Script for changing tabs:
+        $(document).ready(function () {
+            $(".nav-tabs a").click(function () {
+                $(this).tab('show');
+            });
+            $('.nav-tabs a').on('shown.bs.tab', function (event) {
+                {#alert('The new tab is now fully shown. e: ', event);#}
+                var myTab = $(event.target).text();
+                console.log('myTab: ', myTab);
+                if (window.showModalJSON.myTab == true) {
+                    console.log('window.showModalJSON.myTab == true');
+                }
+
+            });
+        });
+
+    </script>
+</head>
+<body>
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home"
+           aria-selected="true">Home</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="map-tab" data-toggle="tab" href="#map" role="tab" aria-controls="map"
+           aria-selected="false">Map</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="datatable-tab" data-toggle="tab" href="#datatable" role="tab" aria-controls="datatable"
+           aria-selected="false">Datatable</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="charts-tab" data-toggle="tab" href="#charts" role="tab" aria-controls="charts"
+           aria-selected="false">Charts</a>
+    </li>
+
+</ul>
+<div class="tab-content" id="myTabContent">
+    <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+        <div class="container-fluid">
+            <div class="row top-buffer bottom-buffer">
+                <div class="col">
+                    <h1 class="text-center">HUD Dashboard</h1>
+                </div>
+            </div>
+
+            <div class="row align-self-center align-items-center">
+                <div class="col-md-2">
+                </div>
+
+                <div class="col-md-4 mycontent-left" align="right">
+                    <img src="./../static/HUD_Seal.svg">
+                </div>
+
+                <div class="col-md-3" align="center">
+                    <p align="center" class="bottom-buffer">
+                        Welcome to the HUD Data Visualization Dashboard. Enter the dashboard to view high-level analysis
+                        of Twitter data about public housing.
+                    </p>
+                    <script type="text/javascript">
+                        function enterDashboardFunc() {
+                            console.log('enter dashboard button pressed');
+                            $('[href="#map"]').tab('show');
+                        }
+                    </script>
+                    <button class="btn btn-primary" type="submit" onclick="enterDashboardFunc();">Enter Dashboard
+                    </button>
+                </div>
+                <div class="col-md-3">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tab-pane fade" id="map" role="tabpanel" aria-labelledby="map-tab">
+        <div class="container">
+            <div class="row top-buffer">
+                <div class="col">
+                    <!-- Modal -->
+                    <div class="modal fade" id="mapModal" tabindex="-1" role="dialog"
+                         aria-labelledby="mapModalLabel"
+                         aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="mapModalLabel">Map Help</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    Hey, did you know that you can hover over the map to get more info? You can also
+                                    click on any state, and you will jump straight to a pre-filtered datatable,
+                                    only showing tweets from that state.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <h2 class="text-center">Heat Map
+                        <!-- Button trigger modal -->
+                        <button type="button" class="btn btn-outline-info" data-toggle="modal"
+                                data-target="#mapModal">
+                            ?
+                        </button>
+                    </h2>
+                </div>
+            </div>
+            <hr/>
+            <div class="row">
+                <div class="col" align="center">
+                    <h4>Tweets by State (Hover for info, Click State to Filter Table)</h4>
+                    <div id="stateChoroplethMap"></div>
+                    <script type="text/javascript">
+                        var myStates = {{ states|tojson }};
+
+                        console.log(myStates);
+
+                        var mapLocations = _.map(myStates, 'Abbreviation');
+                        console.log('mapLocations:', mapLocations);
+
+                        var mapCounts = _.map(myStates, 'count');
+                        console.log('mapCounts', mapCounts);
+
+                        var mapText = _.map(myStates, 'State');
+                        console.log('mapText', mapText);
+
+                        var contentCount = _.countBy(contentArray);
+                        console.log(contentCount);
+
+
+                        var myStateChoroplethMap = document.getElementById('stateChoroplethMap');
+
+                        var mapData = [{
+                            type: 'choropleth',
+                            locations: mapLocations,
+                            locationmode: 'USA-states',
+                            z: mapCounts,
+                            text: mapText,
+                            colorscale: [
+                                [0, 'rgb(5, 10, 172)'], [0.35, 'rgb(40, 60, 190)'],
+                                [0.5, 'rgb(70, 100, 245)'], [0.6, 'rgb(90, 120, 245)'],
+                                [0.7, 'rgb(106, 137, 247)'], [1, 'rgb(220, 220, 220)']],
+                            reversescale: true,
+                            colorbar: {
+                                title: 'Number of Tweets',
+                                thickness: 0.2
+                            },
+                            marker: {
+                                line: {
+                                    color: 'rgb(255,255,255)',
+                                    width: 1
+                                }
+                            }
+                        }];
+
+                        var mapLayout = {
+                            geo: {
+                                scope: 'usa',
+                                showlakes: true,
+                                lakecolor: 'rgb(255,255,255)',
+                                projection: {
+                                    type: 'albers usa'
+                                }
+                            },
+                            autosize: true,
+                            height: 600,
+                            width: 1000
+                        };
+
+                        Plotly.plot(myStateChoroplethMap, mapData, mapLayout, {showLink: false});
+
+                        myStateChoroplethMap.on('plotly_click', function (data) {
+                            console.log('data', data);
+                            console.log('data.points[0].location', data.points[0].location);
+                            $('[href="#datatable"]').tab('show');
+                            datatable.setHeaderFilterValue("state", data.points[0].location);
+                        });
+
+
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tab-pane fade" id="datatable" role="tabpanel" aria-labelledby="datatable-tab">
+        <div class="container-fluid">
+            <div class="row top-buffer">
+                <div class="col">
+                </div>
+
+                <div class="col">
+                    <!-- Modal -->
+                    <div class="modal fade" id="datatableModal" tabindex="-1" role="dialog"
+                         aria-labelledby="datatableModalLabel"
+                         aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="datatableModalLabel">Datatable Help</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    Info about how to use the datatable. You can filter it in those boxes, you can sort
+                                    using the little arrows, and you can clear filters using the button on the right.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <h2 class="text-center">Data Table
+                        <!-- Button trigger modal -->
+                        <button type="button" class="btn btn-outline-info" data-toggle="modal"
+                                data-target="#datatableModal">
+                            ?
+                        </button>
+                    </h2>
+                </div>
+
+                <div class="col">
+                    <button class="btn btn-outline-primary float-right" type="submit" onclick="clearFiltersFunc();">Clear
+                        Filters
+                    </button>
+
+                    <script type="text/javascript">
+                        function clearFiltersFunc() {
+                            console.log('clear filters button pressed');
+                            datatable.clearFilter(true);
+                            datatable.setSort("timestamp", "asc");
+                        }
+                    </script>
+                </div>
+            </div>
+            <hr/>
+            {#            <hr/>#}
+            <div class="row">
+                <div id="example-table"></div>
+                <script type="text/javascript" src="/static/tabulator.min.js"></script>
+                <script type="text/javascript">
+                    // the data will be fed into the html "as context" via flask app
+                    var datatable = new Tabulator("#example-table", {
+                        height: 600, // set height of table to enable virtual DOM
+                        data: myTweets,
+                        layout: "fitColumns", //fit columns to width of table (optional)
+                        columns: [ //Define Table Columns
+                            {
+                                title: "Timestamp",
+                                field: "timestamp",
+                                align: "center",
+                                formatter: "textarea",
+                                width: 125,
+                                headerFilter: true
+                            },
+                            {
+                                title: "Tweet",
+                                field: "tweet",
+                                sorter: "string",
+                                formatter: "textarea",
+                                widthGrow: 3,
+                                headerFilter: true
+                            },
+                            {
+                                title: "Content",
+                                field: "content",
+                                sorter: "string",
+                                formatter: "textarea",
+                                width: 105,
+                                headerFilter: true
+                            },
+                            {
+                                title: "Emotion",
+                                field: "emotion",
+                                sorter: "string",
+                                formatter: "textarea",
+                                width: 105,
+                                headerFilter: true
+                            },
+                            {
+                                title: "User",
+                                field: "username",
+                                sorter: "string",
+                                formatter: "textarea",
+                                align: "left",
+                                headerFilter: true
+                            },
+                            {
+                                title: "Followers",
+                                field: "followers",
+                                align: "right",
+                                width: 111,
+                                formatter: "textarea",
+                                headerFilter: true
+                            },
+                            {
+                                title: "Location",
+                                field: "location",
+                                sorter: "string",
+                                formatter: "textarea",
+                                align: "left",
+                                headerFilter: true
+                            },
+                            {
+                                title: "State",
+                                field: "state",
+                                sorter: "string",
+                                width: 85,
+                                formatter: "textarea",
+                                align: "left",
+                                headerFilter: true
+                            },
+                        ],
+                        initialSort: [
+                            {column: "timestamp", dir: "asc"}, //sort by this first
+                        ]
+                    });
+                </script>
+            </div>
+        </div>
+    </div>
+    <div class="tab-pane fade" id="charts" role="tabpanel" aria-labelledby="charts-tab">
+        <div class="container-fluid">
+            <div class="row top-buffer">
+                <div class="col">
+                </div>
+
+                <div class="col">
+                    <!-- Modal -->
+                    <div class="modal fade" id="chartModal" tabindex="-1" role="dialog"
+                         aria-labelledby="chartModalLabel"
+                         aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="chartModalLabel">Charts Help</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    Hey, did you know that you can filter these charts using the handy checkboxes?
+                                    Both charts describe the same set of tweets--every tweet has both a "content" and
+                                    an "emotion". At first, they are showing the overall breakdown of content and
+                                    emotion. But, say you want to see the breakdown of emotion for only "maintenance"
+                                    tweets, or only "news" tweets. To reset the graphs, hit the "reset charts" button,
+                                    or just re-check all the boxes.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <h2 class="text-center">Pie Charts
+                        <!-- Button trigger modal -->
+                        <button type="button" class="btn btn-outline-info" data-toggle="modal"
+                                data-target="#chartModal">
+                            ?
+                        </button>
+                    </h2>
+                </div>
+
+                <div class="col">
+                    <button class="btn btn-outline-primary float-right" type="submit" onclick="resetPlotFunc();">Reset Plots
+                    </button>
+                    <script type="text/javascript">
+                        function resetPlotFunc() {
+                            // set the hidden labels arrays to empty
+                            window.hiddenContentLabels = [];
+                            window.hiddenEmotionLabels = [];
+
+                            // set the checkboxes to "checked"
+                            window.contentIDs.forEach(function (arrayItem) {
+                                var tempCheckBox = document.getElementById(arrayItem);
+                                // console.log('tempCheckBox', tempCheckBox);
+                                tempCheckBox.checked = true;
+                            });
+
+                            window.emotionIDs.forEach(function (arrayItem) {
+                                var tempCheckBox = document.getElementById(arrayItem);
+                                // console.log('tempCheckBox', tempCheckBox);
+                                tempCheckBox.checked = true;
+                            });
+
+                            // call the filter tweets function (this will call plotContent() and plotEmotion())
+                            filterTweets();
+                        }
+                    </script>
+                </div>
+            </div>
+            <hr/>
+        </div>
+        <div class="row">
+            <div class="col" align="center">
+                <h4>Tweet Content</h4>
+            </div>
+            <div class="col" align="center">
+                <h4>Tweet Emotion</h4>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col" align="center">
+                <h6>Filters:</h6>
+                <div class="custom-control custom-checkbox custom-control-inline">
+                    <input type="checkbox" class="custom-control-input" id="commentCheck" checked>
+                    <label class="custom-control-label" for="commentCheck">
+                        Comment
+                    </label>
+                </div>
+                <div class="custom-control custom-checkbox custom-control-inline">
+                    <input type="checkbox" class="custom-control-input" id="newsCheck" checked>
+                    <label class="custom-control-label" for="newsCheck">
+                        News
+                    </label>
+                </div>
+                <div class="custom-control custom-checkbox custom-control-inline">
+                    <input type="checkbox" class="custom-control-input" id="policyDecisionCheck" checked>
+                    <label class="custom-control-label" for="policyDecisionCheck">
+                        Policy Decision
+                    </label>
+                </div>
+                <div class="custom-control custom-checkbox custom-control-inline">
+                    <input type="checkbox" class="custom-control-input" id="questionCheck" checked>
+                    <label class="custom-control-label" for="questionCheck">
+                        Question
+                    </label>
+                </div>
+                <div class="custom-control custom-checkbox custom-control-inline">
+                    <input type="checkbox" class="custom-control-input" id="irrelevantCheck" checked>
+                    <label class="custom-control-label" for="irrelevantCheck">
+                        Irrelevant
+                    </label>
+                </div>
+                <div class="custom-control custom-checkbox custom-control-inline">
+                    <input type="checkbox" class="custom-control-input" id="maintenanceCheck" checked>
+                    <label class="custom-control-label" for="maintenanceCheck">
+                        Maintenance
+                    </label>
+                </div>
+                <div class="custom-control custom-checkbox custom-control-inline">
+                    <input type="checkbox" class="custom-control-input" id="experienceCheck" checked>
+                    <label class="custom-control-label" for="experienceCheck">
+                        Experience
+                    </label>
+                </div>
+            </div>
+            <div class="col" align="center">
+                <h6>Filters:</h6>
+                <div class="custom-control custom-checkbox custom-control-inline">
+                    <input type="checkbox" class="custom-control-input" id="frustratedCheck" checked>
+                    <label class="custom-control-label" for="frustratedCheck">
+                        Frustrated
+                    </label>
+                </div>
+                <div class="custom-control custom-checkbox custom-control-inline">
+                    <input type="checkbox" class="custom-control-input" id="neutralCheck" checked>
+                    <label class="custom-control-label" for="neutralCheck">
+                        Neutral
+                    </label>
+                </div>
+                <div class="custom-control custom-checkbox custom-control-inline">
+                    <input type="checkbox" class="custom-control-input" id="positiveCheck" checked>
+                    <label class="custom-control-label" for="positiveCheck">
+                        Positive
+                    </label>
+                </div>
+                <div class="custom-control custom-checkbox custom-control-inline">
+                    <input type="checkbox" class="custom-control-input" id="confusedCheck" checked>
+                    <label class="custom-control-label" for="confusedCheck">
+                        Confused
+                    </label>
+                </div>
+            </div>
+
+            <script type="text/javascript">
+                $('.custom-control-input').on('change', evt => {
+                    console.log('evt', evt);
+                    console.log('evt.target.id', evt.target.id);
+                    console.log('evt.target.parentElement.innerText', evt.target.parentElement.innerText);
+                    console.log($(evt.target).is(':checked'));
+
+                    if (_.includes(contentIDs, evt.target.id)) {
+                        if ($(evt.target).is(':checked')) {
+                            _.pull(window.hiddenContentLabels, evt.target.parentElement.innerText);
+                        } else {
+                            window.hiddenContentLabels = _.concat(window.hiddenContentLabels, evt.target.parentElement.innerText);
+                        }
+                    } else if (_.includes(emotionIDs, evt.target.id)) {
+                        if ($(evt.target).is(':checked')) {
+                            _.pull(window.hiddenEmotionLabels, evt.target.parentElement.innerText);
+                        } else {
+                            window.hiddenEmotionLabels = _.concat(window.hiddenEmotionLabels, evt.target.parentElement.innerText);
+                        }
+                    }
+
+                    console.log('hiddenContentLabels', window.hiddenContentLabels);
+                    console.log('hiddenEmotionLabels', window.hiddenEmotionLabels);
+
+                    filterTweets();
+                })
+            </script>
+        </div>
+        <div class="row">
+            <div class="col-lg-6" align="center">
+                <div id="tweetContentPie"></div>
+                <script type="text/javascript">
+
+                    plotContent();
+
+                    var myTweetContentPlot = document.getElementById('tweetContentPie');
+                    myTweetContentPlot.on('plotly_legendclick', function (event) {
+                        return false;
+                    });
+
+                </script>
+            </div>
+            <div class="col-lg-6" align="center">
+                <div id="tweetEmotionPie"></div>
+                <script type="text/javascript">
+
+                    plotEmotion();
+                    var myTweetEmotionPlot = document.getElementById('tweetEmotionPie');
+
+                    myTweetEmotionPlot.on('plotly_legendclick', function (data) {
+                        return false;
+                    });
+
+                </script>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+
+</body>
+</html>
