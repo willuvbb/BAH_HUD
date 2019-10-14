@@ -1,0 +1,10 @@
+numpy
+matplotlib
+pandas
+imblearn
+nltk
+sklearn
+xgboost
+seaborn
+elasticsearch
+tweepy
