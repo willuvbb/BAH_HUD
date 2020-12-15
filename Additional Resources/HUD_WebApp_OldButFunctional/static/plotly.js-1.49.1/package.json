@@ -125,7 +125,7 @@
     "chttps": "^1.0.6",
     "deep-equal": "^1.0.1",
     "derequire": "^2.0.6",
-    "ecstatic": "^3.3.2",
+    "ecstatic": "^4.1.4",
     "eslint": "^6.1.0",
     "falafel": "^2.1.0",
     "fs-extra": "^2.0.0",
